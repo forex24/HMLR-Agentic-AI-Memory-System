@@ -22,19 +22,12 @@ from memory.retrieval.crawler import LatticeCrawler
 from memory.retrieval.context_hydrator import ContextHydrator
 from memory.retrieval.lattice import LatticeRetrieval, TheGovernor
 from memory.retrieval.hmlr_hydrator import Hydrator
-from memory.tabula_rasa import TabulaRasa
-from memory.topics import TopicExtractor, TopicFilter
-from memory.usage import CitationParser, UsageTracker
-from memory.adaptive import AdaptiveCompressor, EvictionManager, RehydrationManager
 from memory.synthesis import SynthesisManager
 from memory.synthesis.user_profile_manager import UserProfileManager
 from memory.synthesis.scribe import Scribe
 from memory.chunking.chunk_engine import ChunkEngine
 from memory.fact_scrubber import FactScrubber
-from core.external_api_client import ExternalAPIClient
-from core.tool_manager import ToolManager
 from core.cognitive_lattice import SessionManager
-from core.planning_interview import UniversalPlanningInterview
 
 
 @dataclass
@@ -51,51 +44,32 @@ class ComponentBundle:
     sliding_window: SlidingWindow
     session_manager: SessionManager
     
-    # External services
-    external_api: Optional[ExternalAPIClient]
-    planning_interview: Optional[UniversalPlanningInterview]
-    tool_manager: ToolManager
-    
-    # Retrieval components (Phase 3)
+    # Retrieval components
     crawler: LatticeCrawler
     intent_analyzer: IntentAnalyzer
     context_hydrator: ContextHydrator
     
-    # HMLR v1 Components (Phase 4 Integration)
+    # HMLR Components
     lattice_retrieval: LatticeRetrieval
     governor: TheGovernor
     hydrator: Hydrator
-    tabula_rasa: TabulaRasa
     
-    # Topic tracking (Phase 4.1)
-    topic_extractor: TopicExtractor
-    topic_filter: TopicFilter
-    
-    # Usage tracking (Phase 4.1)
-    citation_parser: CitationParser
-    usage_tracker: UsageTracker
-    
-    # Adaptive memory (Phase 4.3)
-    adaptive_compressor: AdaptiveCompressor
-    eviction_manager: EvictionManager
-    rehydration_manager: RehydrationManager
-    
-    # Synthesis (Phase 4.4)
+    # Synthesis
     synthesis_manager: SynthesisManager
     user_profile_manager: UserProfileManager
     scribe: Scribe
     
-    # Chunking and Fact Extraction (Phase 11.3)
+    # Chunking and Fact Extraction
     chunk_engine: ChunkEngine
-    fact_scrubber: FactScrubber
+    fact_scrubber: Optional[FactScrubber]
     
     # Utilities
     debug_logger: MemoryDebugLogger
     metadata_extractor: LLMMetadataExtractor
-    embedding_storage: EmbeddingStorage  # Unified: handles encoding AND database storage
+    embedding_storage: EmbeddingStorage
     
     # Session state
-    previous_day: str  # For synthesis triggers
+    previous_day: str
 
 
 class ComponentFactory:
@@ -171,27 +145,13 @@ class ComponentFactory:
         crawler = LatticeCrawler(storage, recency_weight=crawler_recency_weight)
         context_hydrator = ContextHydrator(storage=storage, max_tokens=context_budget_tokens)
         
-        # === HMLR v1 Components === #
-        print("   🏛️  Initializing HMLR v1 components...")
+        # === HMLR Components === #
+        print("   🏛️  Initializing HMLR components...")
         lattice_retrieval = LatticeRetrieval(crawler)
-        # Governor needs API client, but we haven't initialized it yet.
-        # We'll initialize Governor after ExternalAPIClient.
         hydrator = Hydrator(storage, token_limit=context_budget_tokens)
         
-        # Initialize Tabula Rasa (needs storage and topic extractor)
-        # We initialize topic extractor first
-        print("   🏷️  Initializing topic tracking & usage monitoring...")
-        topic_extractor = TopicExtractor()
-        topic_filter = TopicFilter()
-        citation_parser = CitationParser()
-        usage_tracker = UsageTracker()
-        print(f"   🏷️  Phase 4.1 enabled: Topic tracking & usage monitoring")
-        
-        tabula_rasa = TabulaRasa(storage, topic_extractor)
-        print(f"   🔄 Tabula Rasa enabled: Automatic topic segmentation")
-        
         # Load or create sliding window
-        print(f"   📂 Loading sliding window from persistent state...")
+        print(f"   📂 Loading sliding window...")
         sliding_window = SlidingWindow.load_from_file()
         
         if len(sliding_window.turns) == 0:
@@ -210,41 +170,28 @@ class ComponentFactory:
             print(f"      📂 Loaded sliding window state: {len(sliding_window.turns)} turns")
         
         print(f"   🔍 Retrieval system enabled")
-        mode_desc = "LLM mode" if use_llm_intent_mode else "Heuristic mode (nano prompting handles intent)"
+        mode_desc = "LLM mode" if use_llm_intent_mode else "Heuristic mode"
         print(f"      - Intent Analyzer: {mode_desc}")
-        print(f"      - Crawler: Topic-aware scoring")
         print(f"      - Context Hydrator: {context_budget_tokens} token budget")
         
-        # === Phase 4.1: Topic Tracking & Usage === #
-        # Already initialized above for Tabula Rasa
-        
-        # === Phase 4.3: Adaptive Sliding Window === #
-        print("   🎯 Initializing adaptive compression...")
-        adaptive_compressor = AdaptiveCompressor(embedder=embedding_storage.embedding_manager.encode)
-        eviction_manager = EvictionManager()
-        rehydration_manager = RehydrationManager()
-        print(f"   🎯 Phase 4.3 enabled: Adaptive compression with graduated thresholds")
-        
-        # === Phase 4.4: Synthesis System === #
+        # === Synthesis System === #
         print("   🧠 Initializing synthesis system...")
         synthesis_manager = SynthesisManager(storage)
         user_profile_manager = UserProfileManager()
-        # Scribe needs API client, initialized later
-        print(f"   🧠 Phase 4.4 enabled: Hierarchical synthesis and user profiling")
+        print(f"   🧠 Synthesis system enabled")
         
         # === External Services === #
         print("   🌐 Initializing external services...")
-        tool_manager = ToolManager()
-        print(f"   🔧 Tool Manager initialized")
         
         try:
+            from core.external_api_client import ExternalAPIClient
             external_api = ExternalAPIClient()
             print(f"   🌐 External API client initialized")
         except Exception as e:
             print(f"   ⚠️  Could not initialize External API Client: {e}")
             external_api = None
         
-        # Initialize Governor now that we have API client, storage, and crawler
+        # Initialize Governor now that we have API client
         governor = TheGovernor(external_api, storage, crawler) if external_api else None
         if governor:
             print(f"   🏛️  The Governor is online")
@@ -258,7 +205,7 @@ class ComponentFactory:
         else:
             print(f"   ⚠️  The Scribe is offline (no API)")
         
-        # === Phase 11.3: Chunking and Fact Extraction === #
+        # === Chunking and Fact Extraction === #
         print("   🔧 Initializing chunking and fact extraction...")
         chunk_engine = ChunkEngine()
         fact_scrubber = FactScrubber(storage, external_api) if external_api else None
@@ -267,11 +214,6 @@ class ComponentFactory:
         else:
             print(f"   ⚠️  FactScrubber is offline (no API)")
         
-        planning_interview = None
-        if external_api:
-            planning_interview = UniversalPlanningInterview(external_api)
-            print(f"   📅 Planning Interview system initialized")
-        
         print("   ✅ All components initialized successfully")
         
         return ComponentBundle(
@@ -279,23 +221,12 @@ class ComponentFactory:
             conversation_mgr=conversation_mgr,
             sliding_window=sliding_window,
             session_manager=session_manager,
-            external_api=external_api,
-            planning_interview=planning_interview,
-            tool_manager=tool_manager,
             crawler=crawler,
             intent_analyzer=intent_analyzer,
             context_hydrator=context_hydrator,
             lattice_retrieval=lattice_retrieval,
             governor=governor,
             hydrator=hydrator,
-            tabula_rasa=tabula_rasa,
-            topic_extractor=topic_extractor,
-            topic_filter=topic_filter,
-            citation_parser=citation_parser,
-            usage_tracker=usage_tracker,
-            adaptive_compressor=adaptive_compressor,
-            eviction_manager=eviction_manager,
-            rehydration_manager=rehydration_manager,
             synthesis_manager=synthesis_manager,
             user_profile_manager=user_profile_manager,
             scribe=scribe,
@@ -328,9 +259,6 @@ class ComponentFactory:
         engine = ConversationEngine(
             storage=components.storage,
             sliding_window=components.sliding_window,
-            external_api=components.external_api,
-            planning_interview=components.planning_interview,
-            tool_manager=components.tool_manager,
             session_manager=components.session_manager,
             conversation_mgr=components.conversation_mgr,
             crawler=components.crawler,
@@ -338,15 +266,7 @@ class ComponentFactory:
             lattice_retrieval=components.lattice_retrieval,
             governor=components.governor,
             hydrator=components.hydrator,
-            tabula_rasa=components.tabula_rasa,
-            topic_extractor=components.topic_extractor,
-            topic_filter=components.topic_filter,
             context_hydrator=components.context_hydrator,
-            citation_parser=components.citation_parser,
-            usage_tracker=components.usage_tracker,
-            adaptive_compressor=components.adaptive_compressor,
-            eviction_manager=components.eviction_manager,
-            rehydration_manager=components.rehydration_manager,
             synthesis_manager=components.synthesis_manager,
             user_profile_manager=components.user_profile_manager,
             scribe=components.scribe,

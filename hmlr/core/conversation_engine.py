@@ -14,8 +14,6 @@ from core.telemetry import get_tracer
 
 from core.models import ConversationResponse, ResponseStatus
 from memory.models import Intent, QueryType
-from core.llama_client import diagnose_user_intent
-from memory.retrieval.quick_keywords import extract_quick_keywords
 from memory.debug_logger import MemoryDebugLogger
 from memory.retrieval.lattice import LatticeRetrieval, TheGovernor
 from memory.retrieval.hmlr_hydrator import Hydrator
@@ -38,9 +36,6 @@ class ConversationEngine:
         self,
         storage,
         sliding_window,
-        external_api,
-        planning_interview,
-        tool_manager,
         session_manager,
         conversation_mgr,
         crawler,
@@ -48,23 +43,15 @@ class ConversationEngine:
         lattice_retrieval,
         governor,
         hydrator,
-        tabula_rasa,
-        topic_extractor,
-        topic_filter,
         context_hydrator,
-        citation_parser,
-        usage_tracker,
-        adaptive_compressor,
-        eviction_manager,
-            rehydration_manager,
-            synthesis_manager,
-            user_profile_manager,
-            scribe,
-            chunk_engine,
-            fact_scrubber,
-            debug_logger,
-            embedding_storage,
-            previous_day=None
+        synthesis_manager,
+        user_profile_manager,
+        scribe,
+        chunk_engine,
+        fact_scrubber,
+        debug_logger,
+        embedding_storage,
+        previous_day=None
     ):
         """
         Initialize ConversationEngine with all required components.
@@ -72,25 +59,14 @@ class ConversationEngine:
         Args:
             storage: DailyStorage instance
             sliding_window: SlidingWindow instance
-            external_api: ExternalAPIClient instance
-            planning_interview: UniversalPlanningInterview instance
-            tool_manager: ToolManager instance
             session_manager: SessionManager instance
             conversation_mgr: ConversationManager instance
-            crawler: TopicAwareCrawler instance
+            crawler: LatticeCrawler instance
             intent_analyzer: IntentAnalyzer instance
             lattice_retrieval: LatticeRetrieval instance
             governor: TheGovernor instance
             hydrator: Hydrator instance
-            tabula_rasa: TabulaRasa instance
-            topic_extractor: TopicExtractor instance
-            topic_filter: TopicFilter instance
             context_hydrator: ContextHydrator instance
-            citation_parser: CitationParser instance
-            usage_tracker: UsageTracker instance
-            adaptive_compressor: AdaptiveCompressor instance
-            eviction_manager: EvictionManager instance
-            rehydration_manager: RehydrationManager instance
             synthesis_manager: SynthesisManager instance
             user_profile_manager: UserProfileManager instance
             scribe: Scribe instance
@@ -103,9 +79,6 @@ class ConversationEngine:
         self.tracer = get_tracer(__name__)
         self.storage = storage
         self.sliding_window = sliding_window
-        self.external_api = external_api
-        self.planning_interview = planning_interview
-        self.tool_manager = tool_manager
         self.session_manager = session_manager
         self.conversation_mgr = conversation_mgr
         self.crawler = crawler
@@ -113,27 +86,15 @@ class ConversationEngine:
         self.lattice_retrieval = lattice_retrieval
         self.governor = governor
         self.hydrator = hydrator
-        self.tabula_rasa = tabula_rasa
-        self.topic_extractor = topic_extractor
-        self.topic_filter = topic_filter
         self.context_hydrator = context_hydrator
-        self.citation_parser = citation_parser
-        self.usage_tracker = usage_tracker
-        self.adaptive_compressor = adaptive_compressor
-        self.eviction_manager = eviction_manager
-        self.rehydration_manager = rehydration_manager
         self.synthesis_manager = synthesis_manager
         self.user_profile_manager = user_profile_manager
         self.scribe = scribe
         self.chunk_engine = chunk_engine
         self.fact_scrubber = fact_scrubber
-        self.synthesis_manager = synthesis_manager
-        self.user_profile_manager = user_profile_manager
-        self.scribe = scribe
         self.debug_logger = debug_logger
         self.embedding_storage = embedding_storage
-        self.previous_day = previous_day        # Planning session state
-        self.planning_session_id = None
+        self.previous_day = previous_day
         
         # HACK: Force chat intent for HMLR testing
         print("⚠️  HMLR TESTING MODE: Intent detection forced to 'chat' (except web automation)")
