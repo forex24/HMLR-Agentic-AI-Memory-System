@@ -36,11 +36,11 @@ from dotenv import load_dotenv
 load_dotenv()
 
 # LangSmith integration (optional)
-try:
-    from langsmith import Client as LangSmithClient
-    LANGSMITH_AVAILABLE = bool(os.getenv('LANGSMITH_API_KEY'))
-except ImportError:
-    LANGSMITH_AVAILABLE = False
+#try:
+ #   from langsmith import Client as LangSmithClient
+  #  LANGSMITH_AVAILABLE = bool(os.getenv('LANGSMITH_API_KEY'))
+#except ImportError:
+#    LANGSMITH_AVAILABLE = False
 
 # Add project root to path
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))

@@ -1,14 +1,31 @@
 """
-HMLR - Hierarchical Memory Lookup & Routing
-The 'Forever Chat' Memory Engine for AI Agents
+HMLR - Hierarchical Memory with Lattice Retrieval
 
-⚠️ IMPORTANT: All benchmark results (RAGAS scores) were achieved using GPT-4o-mini.
-Changing the LLM endpoint may affect performance and invalidate guarantees.
+A memory system for AI agents with:
+- Bridge block architecture for topic segmentation
+- Fact extraction and storage  
+- Hierarchical retrieval (sentence → paragraph → block)
+- GPT-4o-mini optimized
 
-See docs/model_compatibility.md for details.
+WARNING: This package has ONLY been tested with GPT-4o-mini.
+Other models may produce incorrect results or fail completely.
+
+Example:
+    ```python
+    from hmlr import HMLRClient
+    
+    client = HMLRClient(
+        api_key="your-openai-key",
+        db_path="memory.db"
+    )
+    
+    response = await client.chat("Hello! My name is Alice.")
+    print(response["content"])
+    ```
 """
 
 __version__ = "0.1.0"
 
-# Note: Imports will be added in Phase 4 when we create the HMLRClient
-__all__ = []
+from .client import HMLRClient
+
+__all__ = ["HMLRClient"]

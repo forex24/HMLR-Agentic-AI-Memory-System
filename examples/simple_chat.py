@@ -1,5 +1,10 @@
 """
-CognitiveLattice Console Interface (Refactored)
+HMLR Simple Chat Example
+
+This example shows how to use the HMLR client for basic conversation
+with memory. This is the new public API for HMLR.
+
+Original CognitiveLattice Console Interface (Refactored)
 
 Phase 4 Refactor: Simplified main.py using ConversationEngine for all conversation logic.
 Reduced from ~877 lines to ~150 lines by delegating to reusable components.
