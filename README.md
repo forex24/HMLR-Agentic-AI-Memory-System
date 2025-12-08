@@ -189,38 +189,90 @@ Cost-efficient mini-model orchestration with pro-level behavior
 
 ## 🚀 Quick Start
 
-### Prerequisites
+### Installation
+
+**Install from PyPI:**
+```bash
+pip install hmlr
+```
+
+**With optional features:**
+```bash
+# LangChain integration
+pip install hmlr[langchain]
+
+# All features
+pip install hmlr[langchain,telemetry,dev]
+```
+
+**Or install from source:**
+```bash
+git clone https://github.com/Sean-V-Dev/HMLR-Agentic-AI-Memory-System.git
+cd HMLR-Agentic-AI-Memory-System
+pip install -e .
+```
+
+### Basic Usage
+
+```python
+from hmlr import HMLRClient
+import asyncio
+
+async def main():
+    # Initialize client
+    client = HMLRClient(
+        api_key="your-openai-api-key",
+        db_path="memory.db",
+        model="gpt-4.1-mini"  # ONLY tested model!
+    )
+    
+    # Chat with persistent memory
+    response = await client.chat("My name is Alice and I love pizza")
+    print(response)
+    
+    # HMLR remembers across messages
+    response = await client.chat("What's my favorite food?")
+    print(response)  # Will recall "pizza"
+
+asyncio.run(main())
+```
+
+**⚠️ CRITICAL**: HMLR is ONLY tested with `gpt-4.1-mini`. Other models are NOT guaranteed.
+
+### LangChain Integration
+
+```python
+from hmlr.integrations.langchain import HMLRMemory
+from langchain.chains import ConversationChain
+from langchain_openai import ChatOpenAI
+
+memory = HMLRMemory(api_key="your-key", db_path="memory.db")
+llm = ChatOpenAI(model="gpt-4.1-mini")
+chain = ConversationChain(llm=llm, memory=memory)
+
+response = chain.invoke({"input": "Hello!"})
+```
+
+### Documentation
+
+- **[Installation Guide](docs/installation.md)** - Detailed setup instructions
+- **[Quick Start](docs/quickstart.md)** - Usage examples and best practices  
+- **[Model Compatibility](docs/model_compatibility.md)** - ⚠️ CRITICAL model warnings
+- **[Examples](examples/)** - Working code samples
+
+### Prerequisites (for development)
 - Python 3.10+
 - OpenAI API key (for GPT-4.1-mini)
 - Optional: LangSmith API key for test result tracking
 
-### Installation
-1. Clone the repository:
-   ```bash
-   git clone https://github.com/yourusername/HMLR.git
-   cd HMLR
-   ```
-
-2. Install dependencies:
-   ```bash
-   pip install -r requirements.txt
-   ```
-
-3. Set up environment variables in a `.env` file:
-   ```
-   OPENAI_API_KEY=your_openai_key_here
-   LANGSMITH_API_KEY=your_langsmith_key_here  # Optional
-   ```
-
-### Running HMLR
-Start the interactive console:
+### Running Tests (from source)
 ```bash
-python main.py
-```
+# Clone and install
+git clone https://github.com/Sean-V-Dev/HMLR-Agentic-AI-Memory-System.git
+cd HMLR-Agentic-AI-Memory-System
+pip install -e .[dev]
 
-### Running Tests
-Run RAGAS benchmarks:
-```bash
+# Run RAGAS benchmarks
 cd tests
 pytest ragas_test_8_multi_hop.py -v -s  # Example: Multi-hop test
 ```
