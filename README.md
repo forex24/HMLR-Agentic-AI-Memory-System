@@ -113,7 +113,7 @@ This is intentional: HMLR retrieves entire Bridge Blocks (5–10 turns) instead 
 
 HMLR explicitly prioritizes Recall Safety, Temporal Correctness, and State Coherence over aggressive token minimization.
 
-🚀 Architecture > Model Size (Verified)
+**Architecture > Model Size (Verified)**
 
 All benchmarks above were executed with:
 
@@ -128,7 +128,7 @@ No massive context windows
 These results empirically validate the core thesis behind HMLR:
 Correct architecture can outperform large models fed with poorly structured context.
 
-🧠 Why HMLR Is Unusual (Even Among Research Systems)
+**Why HMLR Is Unusual (Even Among Research Systems)**
 
 Most memory or RAG systems optimize for one or two of the following:
 
@@ -156,7 +156,7 @@ Very few demonstrate all of the following simultaneously:
 
 HMLR v1 demonstrates all seven.
 
-⚠️ Scope of the Claim (Important)
+ **Scope of the Claim (Important)**
 
 This project does not claim that no proprietary system on Earth can achieve similar results. Large foundation model providers may possess internal memory systems with comparable capabilities.
 
@@ -172,7 +172,7 @@ auditable,
 
 and fully inspectable.
 
-✨ What HMLR Enables
+ **What HMLR Enables**
 
 Persistent “forever chat” memory without token bloat
 
@@ -234,7 +234,7 @@ async def main():
 asyncio.run(main())
 ```
 
-**⚠️ CRITICAL**: HMLR is ONLY tested with `gpt-4.1-mini`. Other models are NOT guaranteed.
+**CRITICAL**: HMLR is ONLY tested with `gpt-4.1-mini`. Other models are NOT guaranteed.
 
 ### Development Setup (Recommended)
 
@@ -261,7 +261,7 @@ pytest tests/ -v --tb=short
 - **[Quick Start](docs/quickstart.md)** - Usage examples and best practices  
 - **[Model Compatibility](docs/model_compatibility.md)** - ⚠️ CRITICAL model warnings
 - **[Examples](examples/)** - Working code samples
-
+-**[Contributing Guide](docs/configuration.md.md)** - How to adjust individual settings
 ### Prerequisites (for development)
 - Python 3.10+
 - OpenAI API key (for GPT-4.1-mini)
